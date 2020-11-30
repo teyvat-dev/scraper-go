@@ -28,25 +28,25 @@ I am also super greatful for any tips and tricks for go development since I am v
 
 ### Completion List
 
-[ ] - Artifacts
-[ ] - ArtifactSets
-[ ] - Characters *Current Development*
-[ ] - CharacterAscensions
-[ ] - CharacterAscensionMaterials
-[ ] - CharacterProfiles *Current Development*
-[ ] - CommonAscensionMaterials
-[ ] - CommonMaterials
-[ ] - Consumeables
-[ ] - ConsumeableRecipes
-[ ] - CookingMaterials
-[ ] - CraftingMaterials
-[ ] - Domains
-[ ] - Elements
-[ ] - ForgeRecipes
-[ ] - Regions
-[ ] - Talents *Current Development*
-[ ] - TalentLevelUpMaterials
-[ ] - Weapons
-[ ] - WeaponAscensions
-[ ] - WeaponAscensionMaterials
-[ ] - WeaponEnhancementMaterials
+- [ ] Artifacts
+- [ ] ArtifactSets
+- [ ] - Characters **Current Development**
+- [ ] CharacterAscensions
+- [ ] CharacterAscensionMaterials
+- [ ] CharacterProfiles **Current Development**
+- [ ] CommonAscensionMaterials
+- [ ] CommonMaterials
+- [ ] Consumeables
+- [ ] ConsumeableRecipes
+- [ ] CookingMaterials
+- [ ] CraftingMaterials
+- [ ] Domains
+- [ ] Elements
+- [ ] ForgeRecipes
+- [ ] Regions
+- [ ] Talents **Current Development**
+- [ ] TalentLevelUpMaterials
+- [ ] Weapons
+- [ ] WeaponAscensions
+- [ ] WeaponAscensionMaterials
+- [ ] WeaponEnhancementMaterials

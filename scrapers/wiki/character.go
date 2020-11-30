@@ -3,12 +3,15 @@ package wikicharacterscraper
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
+	"github.com/imdario/mergo"
 	wikicharacterscrapertypes "teyvat.dev/scraper-go/scrapers/wiki/types"
 )
 
@@ -76,7 +79,7 @@ func Scrape(w http.ResponseWriter, r *http.Request) string {
 		bio := e.DOM.Find("div.pi-section-content[data-ref=\"0\"]")
 		birthday := bio.Find("div.pi-item[data-source=\"birthday\"] div").Text()
 		constellation := bio.Find("div.pi-item[data-source=\"constellation\"] div").Text()
-		affiliation := bio.Find("div.pi-item[data-source=\"afilliation\"] div").Text()
+		affiliation := bio.Find("div.pi-item[data-source=\"affiliation\"] div").Text()
 		dish := bio.Find("div.pi-item[data-source=\"dish\"] div").Text()
 
 		voiceActors := e.DOM.Find("div.pi-section-content[data-ref=\"1\"]")
@@ -99,7 +102,12 @@ func Scrape(w http.ResponseWriter, r *http.Request) string {
 				return
 			}
 
-			Type := strings.ReplaceAll(strings.Split(selection.Find("td:nth-of-type(1)").Text(), "-")[0], " ", "")
+			reg, err := regexp.Compile("[^a-zA-Z]+")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			Type := reg.ReplaceAllString(strings.ReplaceAll(strings.Split(selection.Find("td:nth-of-type(1)").Text(), "-")[0], " ", ""), "")
 			Name := selection.Find("td:nth-of-type(2)").Text()
 			Icon, _ := selection.Find("td:nth-of-type(3) a img").Attr("data-src") // Do we want to catch this err?
 			Info := selection.Find("td:nth-of-type(4)").Text()                    // Can be parsed better
@@ -122,7 +130,7 @@ func Scrape(w http.ResponseWriter, r *http.Request) string {
 				return
 			}
 
-			Level, _ := strconv.Atoi(selection.Find("th").Text())
+			Level, _ := strconv.Atoi(strings.ReplaceAll(selection.Find("th:nth-of-type(1)").Text(), "\n", ""))
 			Name := selection.Find("td:nth-of-type(1)").Text()
 			Effect := selection.Find("td:nth-of-type(2)").Text() // Can be parsed better
 
@@ -206,21 +214,63 @@ func Scrape(w http.ResponseWriter, r *http.Request) string {
 	storyCollector.Wait()
 	voicelinesCollector.Wait()
 
-	// TODO: Combine into single Array here rather than in uploader
+	characters := make(wikicharacterscrapertypes.CharacterPrismaPayload)
 
-	characterTableBytes, characterTableBytesErr := json.Marshal(characterTableInfos)
-
-	if characterTableBytesErr != nil {
-		panic(characterTableBytesErr)
+	for _, char := range characterTableInfos {
+		characters[char.Name] = wikicharacterscrapertypes.CharacterPrisma{
+			Name:   char.Name,
+			Rarity: char.Rarity,
+			CharacterProfile: wikicharacterscrapertypes.CharacterProfilePrisma{
+				Region: char.Nation,
+				Vision: char.Element,
+			},
+			Elements: []string{char.Element},
+			Weapon:   char.Weapon,
+		}
 	}
 
-	characterProfileBytes, characterProfileBytesErr := json.Marshal(characterProfileInfos)
+	for _, char := range characterProfileInfos {
+		parsedTalents := make([]*wikicharacterscrapertypes.CharacterTalentsPrisma, 0)
 
-	if characterProfileBytesErr != nil {
-		panic(characterProfileBytesErr)
+		for _, talent := range char.Talents {
+			parsedTalents = append(parsedTalents, &wikicharacterscrapertypes.CharacterTalentsPrisma{
+				Name:        talent.Name,
+				Description: talent.Info,
+				Type:        talent.Type,
+			})
+		}
+		temp := wikicharacterscrapertypes.CharacterPrisma{
+			Name:           char.Name,
+			Constellations: char.Constellations,
+			CharacterProfile: wikicharacterscrapertypes.CharacterProfilePrisma{
+				Affiliation:   char.Affiliation,
+				Birthday:      char.Birthday,
+				Constellation: char.Constellation,
+				SpecialtyDish: char.Dish,
+				Overview:      char.Personality,
+				// Story: char.Story,
+				// VoiceLines: char.VoiceLines,
+				VoiceActor: wikicharacterscrapertypes.CharacterProfileVoiceActorPrisma{
+					EN: char.VoiceEN,
+					CN: char.VoiceCN,
+					JP: char.VoiceJP,
+					KR: char.VoiceKR,
+				},
+			},
+			Overview: char.Introduction,
+			Talents:  parsedTalents,
+		}
+
+		mergo.Merge(&temp, characters[char.Name])
+
+		characters[char.Name] = temp
 	}
 
-	bits := []string{string(characterTableBytes), string(characterProfileBytes)}
+	b, err := json.Marshal(characters)
 
-	return fmt.Sprintf("[%v]", strings.Join(bits, ","))
+	if err != nil {
+		panic(err)
+	}
+
+	return fmt.Sprintf("%v", string(b))
 }

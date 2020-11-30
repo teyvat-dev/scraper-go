@@ -17,6 +17,7 @@ type CharacterProfilePrisma struct {
 	// IconImage   string `json:"iconImage"`
 	Birthday      string                           `json:"birthday"`
 	Constellation string                           `json:"constellation"`
+	Overview      string                           `json:"overview"`
 	Story         interface{}                      `json:"story"`
 	VoiceActor    CharacterProfileVoiceActorPrisma `json:"voiceActor"`
 	VoiceLines    interface{}                      `json:"voiceLines"`
@@ -36,19 +37,22 @@ type CharacterTalentsPrisma struct {
 
 // CharacterPrisma JSON struct of character, suitable for prisma upload
 type CharacterPrisma struct {
-	Name           string      `json:"name"`
-	Constellations string      `json:"constellations"`
-	Overview       string      `json:"overview"`
-	Rarity         int         `json:"rarity"`
-	Stats          interface{} `json:"stats"`
+	Name           string                    `json:"name"`
+	Constellations []*CharacterConstellation `json:"constellations"`
+	Overview       string                    `json:"overview"`
+	Rarity         int                       `json:"rarity"`
+	Stats          interface{}               `json:"stats"`
 	// Image   string `json:"image"`
 	Weapon   string   `json:"weapon"`
 	Elements []string `json:"elements"`
 	// Ascensions CharacterAscensionsPrisma `json:"ascensions"`
 	// Sex     string `json:"sex"`
-	CharacterProfile CharacterProfilePrisma `json:"characterProfile"`
-	Talents          CharacterTalentsPrisma `json:"talents"`
+	CharacterProfile CharacterProfilePrisma    `json:"characterProfile"`
+	Talents          []*CharacterTalentsPrisma `json:"talents"`
 }
+
+// CharacterPrismaPayload JSON map of character, suitable for upload parser
+type CharacterPrismaPayload map[string]CharacterPrisma
 
 // Processing Types
 
